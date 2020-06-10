@@ -22,37 +22,21 @@ class WithRegion(val height: Int) {
     }
 
 
-    fun createTree(payload: Array<Int>): Tree? {
-        if (height <= 0) return null;
-
-        var stack = Stack<Tree>()
-        val wholeTree = createLeftTree(height, payload, stack)
-        while (stack.any()) {
-            var bottomElement = stack.peek()
-            if (bottomElement.right != null) {
-                stack.pop()
-                while (stack.any() && stack.peek().right != null) stack.pop()
-
-            }
-            if (stack.any()) {
-                bottomElement = stack.peek()
-                bottomElement.right = createLeftTree(height - stack.count(), payload, stack)
-            }
-        }
-        return wholeTree
+    fun createTree(payload: Array<Int>) {
+        if (height <= 0) return;
+        return
+        // TODO
     }
 
 
     // Populate the tree. Allocates lots of objects for the GC to waste time on.
-    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Tree>): Tree? {
-        if (height == 0) return null;
+    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Int>) {
+        if (height == 0) return
 
-        var newArr = payload.copyOf()
-        val wholeTree = Tree(null, null, newArr)
-        var currTree = wholeTree
+        val wholeTree = allocateNode(payload)
         for (i: Int in 1 until height) {
-            newArr = payload.copyOf()
-            val newTree = Tree(null, null, newArr)
+
+            val newTree = allocateNode(payload)
             currTree.left = newTree
             currTree = newTree
             stack.push(currTree)
@@ -69,15 +53,46 @@ class WithRegion(val height: Int) {
                 regions.add(Array<Int>(SIZE_REGION))
             }
         }
+        val result = (currRegion*SIZE_REGION + indFree)
         val region = regions[currRegion]
         region[indFree++] = -1
         region[indFree++] = -1
         for (i: Int in payload) {
             region[indFree++] = i
         }
-        indFree += 6
-        return (currRegion*SIZE_REGION + indFree)
+        return result
     }
 
+
+    fun getValue(ind: Int): Int {
+        if (ind < 0) return -1
+        val numRegion = ind / SIZE_REGION
+        val offset = ind % SIZE_REGION
+        if (numRegion >= regions.size) return -1;
+        return regions[numRegion][offset]
+    }
+
+
+    fun getValueUnsafe(ind: Int): Int {
+        val numRegion = ind/SIZE_REGION
+        val offset = ind % SIZE_REGION
+        return regions[numRegion][offset]
+    }
+
+
+    fun setValue(ind: Int, newValue: Int) {
+        if (ind < 0) return
+        val numRegion = ind / SIZE_REGION
+        val offset = ind % SIZE_REGION
+        if (numRegion >= regions.size) return
+        regions[numRegion][offset] = newValue
+    }
+
+
+    fun setValueUnsafe(ind: Int, newValue: Int) {
+        val numRegion = ind/SIZE_REGION
+        val offset = ind % SIZE_REGION
+        regions[numRegion][offset] = newValue
+    }
 
 }
