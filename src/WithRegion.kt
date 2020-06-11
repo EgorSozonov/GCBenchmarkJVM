@@ -30,16 +30,16 @@ class WithRegion(val height: Int) {
 
 
     // Populate the tree. Allocates lots of objects for the GC to waste time on.
-    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Int>) {
-        if (height == 0) return
+    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Int>): Int {
+        if (height == 0) return 0
 
         val wholeTree = allocateNode(payload)
         for (i: Int in 1 until height) {
 
             val newTree = allocateNode(payload)
-            currTree.left = newTree
-            currTree = newTree
-            stack.push(currTree)
+//            currTree.left = newTree
+//            currTree = newTree
+//            stack.push(currTree)
         }
         return wholeTree
     }
@@ -50,7 +50,7 @@ class WithRegion(val height: Int) {
             ++currRegion
             indFree = 0
             if (currRegion == regions.size) {
-                regions.add(Array<Int>(SIZE_REGION))
+                regions.add(Array<Int>(SIZE_REGION, {x -> 0}))
             }
         }
         val result = (currRegion*SIZE_REGION + indFree)

@@ -6,11 +6,17 @@ import java.util.concurrent.TimeUnit
 fun main(args: Array<String>) {
     println("Processing tree with GC...")
     val timeStart: Date = Date.from(Instant.now())
-    val withGC = WithGC(8)
+    val withGC = WithGC(24)
+
+    val runtime = Runtime.getRuntime()
+    val memory: Long = runtime.totalMemory() - runtime.freeMemory()
+    println("Used memory = " + (memory / 1024L / 1024L) + " MB")
+
     val result = withGC.processTree()
     val timeEnd = Date.from(Instant.now())
+
     println("Finished with result = " + result)
-    println("Used time: " + getDateDiff(timeStart, timeEnd, TimeUnit.SECONDS))
+    println("Used time = " + getDateDiff(timeStart, timeEnd, TimeUnit.SECONDS) + " s")
     //readLine()
 }
 
