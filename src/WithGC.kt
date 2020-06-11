@@ -25,9 +25,8 @@ class WithGC(val height: Int) {
             if (bottomElement.right != null) {
                 stack.pop()
                 while (stack.any() && stack.peek().right != null) stack.pop()
-
             }
-            if (stack.any()) {
+            if (stack.any() && stack.count() < height) {
                 bottomElement = stack.peek()
                 bottomElement.right = createLeftTree(height - stack.count(), payload, stack)
             }
@@ -43,6 +42,7 @@ class WithGC(val height: Int) {
         var newArr = payload.copyOf()
         val wholeTree = Tree(null, null, newArr)
         var currTree = wholeTree
+        stack.push(wholeTree)
         for (i: Int in 1 until height) {
             newArr = payload.copyOf()
             val newTree = Tree(null, null, newArr)

@@ -3,6 +3,7 @@ import kotlin.collections.ArrayList
 
 class WithRegion(val height: Int) {
     val SIZE_REGION = 6*200000
+    val SIZE_PAYLOAD = 4
     val regions: ArrayList<Array<Int>>
     var currRegion: Int
     var indFree: Int
@@ -12,7 +13,7 @@ class WithRegion(val height: Int) {
     init {
         regions = ArrayList<Array<Int>>(10)
         for (i: Int in 0 until 10) {
-
+            regions.add(Array<Int>(SIZE_REGION) { _ -> 0})
         }
         currRegion = 0
         indFree = 0
@@ -28,40 +29,84 @@ class WithRegion(val height: Int) {
         val wholeTree = createLeftTree(height, payload, stack)
         while (stack.any()) {
             var bottomElement = stack.peek()
-            if (bottomElement.arr[bottomElement.ind + 2] > 0) {
+            if (bottomElement.arr[bottomElement.ind + 1] > -1 || stack.count() == height) {
                 stack.pop()
-                while (stack.any() && stack.peek().right != null) stack.pop()
-
+                while (stack.any()) {
+                    bottomElement = stack.peek()
+                    if (bottomElement.arr[bottomElement.ind + 1] == -1) break
+                    stack.pop()
+                }
             }
-            if (stack.any()) {
+            if (stack.any() ) {
                 bottomElement = stack.peek()
-                bottomElement.arr[bottomElement.ind + 2] = createLeftTree(height - stack.count(), payload, stack)
+                bottomElement.arr[bottomElement.ind + 1] = createLeftTree(height - stack.count(), payload, stack)
             }
         }
-        return
-        // TODO
     }
+
 
     class Loc(val arr: Array<Int>, val ind: Int) {}
 
 
-    // Populate the tree.
     fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Loc>): Int {
-        if (height == 0) return 0
+        if (height == 0) return -1
 
         val wholeTree = allocateNode(payload)
+        var currTree: Loc = toLoc(wholeTree)
+        stack.push(currTree)
         for (i: Int in 1 until height) {
-
             val newTree = allocateNode(payload)
-            newTree.arr[newTree.ind + ]
-//            currTree = newTree
+            currTree.arr[currTree.ind] = newTree
+            currTree = toLoc(newTree)
             stack.push(currTree)
         }
         return wholeTree
     }
 
 
-    fun allocateNode(payload: Array<Int>): Loc {
+    fun processTree(): Int {
+        if (indFree == 0) {
+            println("Oh noes, the tree is null!")
+            return -1
+        } else {
+            val stack = Stack<Loc>()
+            processLeftTree(toLoc(0), stack)
+            while(stack.any()) {
+                val bottomElem = stack.pop()
+                val indRight = bottomElem.arr[bottomElem.ind + 1]
+                if (indRight > -1) processLeftTree(toLoc(indRight), stack)
+            }
+        }
+        return sum
+    }
+
+
+    fun processLeftTree(root: Loc, stack: Stack<Loc>) {
+        stack.push(root)
+        for (i: Int in (root.ind + 2)..(root.ind + SIZE_PAYLOAD + 1)) {
+            sum += root.arr[i]
+        }
+        var currLeft = root.arr[root.ind]
+        while (currLeft > -1) {
+            var currNode = toLoc(currLeft)
+
+            for (i: Int in (currNode.ind + 2)..(currNode.ind + SIZE_PAYLOAD + 1)) {
+                sum += currNode.arr[i]
+            }
+            stack.push(currNode)
+            currLeft = currNode.arr[currNode.ind]
+        }
+    }
+
+
+    fun toLoc(ind: Int): Loc {
+        val numRegion = ind / SIZE_REGION
+        val offset = ind % SIZE_REGION
+        return Loc(regions[numRegion], offset)
+    }
+
+
+    fun allocateNode(payload: Array<Int>): Int {
         if (indFree == SIZE_REGION) {
             ++currRegion
             indFree = 0
@@ -71,7 +116,8 @@ class WithRegion(val height: Int) {
         }
 
         val region = regions[currRegion]
-        val result = Loc(region, indFree)
+        //val result = Loc(region, indFree)
+        val result = currRegion*SIZE_REGION + indFree
         region[indFree++] = -1
         region[indFree++] = -1
         for (i: Int in payload) {
@@ -90,13 +136,6 @@ class WithRegion(val height: Int) {
     }
 
 
-    fun getValueUnsafe(ind: Int): Loc {
-        val numRegion = ind/SIZE_REGION
-        val offset = ind % SIZE_REGION
-        return Loc(regions[numRegion], offset)
-    }
-
-
     fun setValue(ind: Int, newValue: Int) {
         if (ind < 0) return
         val numRegion = ind / SIZE_REGION
@@ -104,12 +143,4 @@ class WithRegion(val height: Int) {
         if (numRegion >= regions.size) return
         regions[numRegion][offset] = newValue
     }
-
-
-    fun setValueUnsafe(ind: Int, newValue: Int) {
-        val numRegion = ind/SIZE_REGION
-        val offset = ind % SIZE_REGION
-        regions[numRegion][offset] = newValue
-    }
-
 }
