@@ -22,7 +22,7 @@ class WithGC(val height: Int) {
         val wholeTree = createLeftTree(height, payload, stack)
         while (stack.any()) {
             var bottomElement = stack.peek()
-            if (bottomElement.right != null) {
+            if (bottomElement.right != null || stack.count() == height) {
                 stack.pop()
                 while (stack.any() && stack.peek().right != null) stack.pop()
             }

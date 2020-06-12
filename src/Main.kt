@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 
 fun main(args: Array<String>) {
-    val treeHeight = 25
+    val treeHeight = 26
     runWithGC(treeHeight)
     //runWithRegions(treeHeight)
 }
