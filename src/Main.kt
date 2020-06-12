@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
     val treeHeight = 25
-    //runWithGC(25)
-    runWithRegions(26)
+    runWithGC(treeHeight)
+    //runWithRegions(treeHeight)
 }
 
 
@@ -18,6 +18,8 @@ fun runWithGC(height: Int) {
     val runtime = Runtime.getRuntime()
     val memory: Long = runtime.totalMemory() - runtime.freeMemory()
     println("Used memory = " + (memory / 1024L / 1024L) + " MB")
+
+    System.gc();
 
     val result = withGC.processTree()
     val timeEnd = Date.from(Instant.now())
