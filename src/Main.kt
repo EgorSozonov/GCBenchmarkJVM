@@ -19,8 +19,6 @@ fun runWithGC(height: Int) {
     val memory: Long = runtime.totalMemory() - runtime.freeMemory()
     println("Used memory = " + (memory / 1024L / 1024L) + " MB")
 
-    System.gc();
-
     val result = withGC.processTree()
     val timeEnd = Date.from(Instant.now())
 
