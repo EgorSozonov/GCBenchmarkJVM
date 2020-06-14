@@ -6,6 +6,8 @@
 # Log file
 *.log
 
+jvmlog*
+
 # BlueJ files
 *.ctxt
 
