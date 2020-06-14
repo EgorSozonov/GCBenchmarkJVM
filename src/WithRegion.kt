@@ -5,7 +5,7 @@ class WithRegion(val height: Int) {
     val ELTS_IN_REGION = 200000
     val SIZE_REGION = 6*ELTS_IN_REGION
     val SIZE_PAYLOAD = 4
-    val regions: ArrayList<Array<Int>>
+    val regions: ArrayList<IntArray>
     var currRegion: Int
     var indFree: Int
     var sum: Int
@@ -13,19 +13,20 @@ class WithRegion(val height: Int) {
 
     init {
         val numRegions = (Math.pow(2.0, this.height.toDouble()) - 1).toInt()/ELTS_IN_REGION + 1
-        regions = ArrayList<Array<Int>>(numRegions)
+        regions = ArrayList<IntArray>(numRegions)
         for (i: Int in 0 until numRegions) {
-            regions.add(Array<Int>(SIZE_REGION) { _ -> 0})
+            //regions.add(IntArray(SIZE_REGION) { _ -> 0})
+            regions.add(IntArray(SIZE_REGION){0})
         }
         currRegion = 0
         indFree = 0
 
-        createTree(arrayOf(1, 2, -1, -1))
+        createTree(intArrayOf(1, 2, -1, -1))
         sum = 0
     }
 
 
-    fun createTree(payload: Array<Int>) {
+    fun createTree(payload: IntArray) {
         if (height <= 0) return;
         val stack = Stack<Loc>()
         val wholeTree = createLeftTree(height, payload, stack)
@@ -47,10 +48,10 @@ class WithRegion(val height: Int) {
     }
 
 
-    class Loc(val arr: Array<Int>, val ind: Int) {}
+    class Loc(val arr: IntArray, val ind: Int) {}
 
 
-    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Loc>): Int {
+    fun createLeftTree(height: Int, payload: IntArray, stack: Stack<Loc>): Int {
         if (height == 0) return -1
 
         val wholeTree = allocateNode(payload)
@@ -108,12 +109,12 @@ class WithRegion(val height: Int) {
     }
 
 
-    fun allocateNode(payload: Array<Int>): Int {
+    fun allocateNode(payload: IntArray): Int {
         if (indFree == SIZE_REGION) {
             ++currRegion
             indFree = 0
             if (currRegion == regions.size) {
-                regions.add(Array<Int>(SIZE_REGION, {x -> 0}))
+                regions.add(IntArray(SIZE_REGION){0})
             }
         }
 

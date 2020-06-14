@@ -3,7 +3,7 @@ import kotlin.collections.ArrayList
 import kotlin.test.currentStackTrace
 
 class WithSmartRegion(val height: Int) {
-    val ELTS_IN_REGION = 4
+    val ELTS_IN_REGION = 400000
     val SIZE_PAYLOAD = 4
     val SIZE_REGION = (SIZE_PAYLOAD + 2)*ELTS_IN_REGION
 
@@ -31,25 +31,33 @@ class WithSmartRegion(val height: Int) {
     class Loc(val reg: Array<Int>, val ind: Int) {}
 
 
-    fun getExactValue(ind: Int, region: Array<Int>): Int {
-        if (ind < 0) throw Exception("Region index must be non-negative, not " + ind)
+    fun toExact(loc: Loc): ExactLoc {
+        if (loc.ind < 0) throw Exception("Region index must be non-negative, not " + loc.ind)
 
-        if (ind < SIZE_REGION) {
-            return ind
+        if (loc.ind < SIZE_REGION) {
+            return ExactLoc(loc.reg, loc.ind)
         } else {
-            val absoluteInd = ind - SIZE_REGION
-            val theRegion = regions[absoluteInd / SIZE_REGION]
+            val absoluteInd = loc.ind - SIZE_REGION
+            val region = regions[absoluteInd / SIZE_REGION]
             val iInregion = absoluteInd % SIZE_REGION
-            return iInregion
+            return ExactLoc(region, iInregion)
         }
     }
 
 
-    fun toExact(loc: Loc): ExactLoc {
-        var region = loc.reg
-        val exactInd = getExactValue(loc.ind, region)
-        return ExactLoc(region, exactInd)
+    fun toExact(reg: Array<Int>, ind: Int): ExactLoc {
+        if (ind < 0) throw Exception("Region index must be non-negative, not " + ind)
+
+        if (ind < SIZE_REGION) {
+            return ExactLoc(reg, ind)
+        } else {
+            val absoluteInd = ind - SIZE_REGION
+            val region = regions[absoluteInd / SIZE_REGION]
+            val iInregion = absoluteInd % SIZE_REGION
+            return ExactLoc(region, iInregion)
+        }
     }
+
 
 
     // ind < SIZE_REGION
@@ -122,14 +130,15 @@ class WithSmartRegion(val height: Int) {
 
         var currLeft = currRegion[exactRoot.ind]
         while (currLeft > -1) {
-            var indInRegion = getExactValue(currLeft, currRegion)
-
+            var leftLoc = toExact(currRegion, currLeft)
+            val indInRegion = leftLoc.ind
             for (i: Int in (indInRegion + 2)..(indInRegion + SIZE_PAYLOAD + 1)) {
-                sum += currRegion[i]
+                sum += leftLoc.reg[i]
             }
-            stack.push(ExactLoc(currRegion, indInRegion))
-            currLeft = currRegion[indInRegion]
+            stack.push(leftLoc)
+            currLeft = leftLoc.reg[leftLoc.ind]
         }
+        val i = 0;
     }
 
 
