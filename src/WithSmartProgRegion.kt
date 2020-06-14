@@ -1,7 +1,7 @@
 import java.util.*
 import kotlin.collections.ArrayList
 
-class WithRegion(val height: Int) {
+class WithSmartProgRegion(val height: Int) {
     val ELTS_IN_REGION = 200000
     val SIZE_REGION = 6*ELTS_IN_REGION
     val SIZE_PAYLOAD = 4

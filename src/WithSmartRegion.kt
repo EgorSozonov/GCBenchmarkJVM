@@ -1,13 +1,15 @@
 import java.util.*
 import kotlin.collections.ArrayList
 
-class WithRegion(val height: Int) {
+class WithSmartRegion(val height: Int) {
     val ELTS_IN_REGION = 200000
-    val SIZE_REGION = 6*ELTS_IN_REGION
     val SIZE_PAYLOAD = 4
+    val SIZE_REGION = (SIZE_PAYLOAD + 2)*ELTS_IN_REGION
+
     val regions: ArrayList<Array<Int>>
-    var currRegion: Int
-    var indFree: Int
+    var lastRegion: Array<Int>
+    var indRegion = 0
+    var indFree = 0
     var sum: Int
 
 
@@ -17,12 +19,14 @@ class WithRegion(val height: Int) {
         for (i: Int in 0 until numRegions) {
             regions.add(Array<Int>(SIZE_REGION) { _ -> 0})
         }
-        currRegion = 0
-        indFree = 0
+        lastRegion = regions[0]
 
         createTree(arrayOf(1, 2, -1, -1))
         sum = 0
     }
+
+
+    class Loc(val reg: Array<Int>, val ind: Int)
 
 
     fun createTree(payload: Array<Int>) {
@@ -31,36 +35,40 @@ class WithRegion(val height: Int) {
         val wholeTree = createLeftTree(height, payload, stack)
         while (stack.any()) {
             var bottomElement = stack.peek()
-            if (bottomElement.arr[bottomElement.ind + 1] > -1 || stack.count() == height) {
+            if (bottomElement.reg[bottomElement.ind + 1] > -1 || stack.count() == height) {
                 stack.pop()
                 while (stack.any()) {
                     bottomElement = stack.peek()
-                    if (bottomElement.arr[bottomElement.ind + 1] == -1) break
+                    if (bottomElement.reg[bottomElement.ind + 1] == -1) break
                     stack.pop()
                 }
             }
-            if (stack.any() ) {
+            if (stack.any()) {
                 bottomElement = stack.peek()
-                bottomElement.arr[bottomElement.ind + 1] = createLeftTree(height - stack.count(), payload, stack)
+                val newSubTree = createLeftTree(height - stack.count(), payload, stack)
+                bottomElement.reg[bottomElement.ind + 1] = newSubTree.ind
             }
         }
     }
 
 
-    class Loc(val arr: Array<Int>, val ind: Int) {}
+    fun toShortInd(currRegion: Array<Int>, loc: Loc): Int {
+        if (loc.reg == currRegion) return loc.ind
+
+    }
 
 
-    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Loc>): Int {
+    fun createLeftTree(height: Int, payload: Array<Int>, stack: Stack<Loc>): Loc {
         if (height == 0) return -1
 
         val wholeTree = allocateNode(payload)
-        var currTree: Loc = toLoc(wholeTree)
+        var currTree: Loc = wholeTree
         stack.push(currTree)
         for (i: Int in 1 until height) {
             val newTree = allocateNode(payload)
-            currTree.arr[currTree.ind] = newTree
-            currTree = toLoc(newTree)
-            stack.push(currTree)
+            currTree.reg[currTree.ind] = newTree.ind
+            stack.push(newTree)
+            currTree = newTree
         }
         return wholeTree
     }
@@ -72,11 +80,11 @@ class WithRegion(val height: Int) {
             return -1
         } else {
             val stack = Stack<Loc>()
-            processLeftTree(toLoc(0), stack)
+            processLeftTree(Loc(regions[0], 0), stack)
             while(stack.any()) {
                 val bottomElem = stack.pop()
-                val indRight = bottomElem.arr[bottomElem.ind + 1]
-                if (indRight > -1) processLeftTree(toLoc(indRight), stack)
+                val indRight = bottomElem.reg[bottomElem.ind + 1]
+                if (indRight > -1) processLeftTree(Loc(bottomElem.reg, indRight), stack)
             }
         }
         return sum
@@ -101,48 +109,36 @@ class WithRegion(val height: Int) {
     }
 
 
-    fun toLoc(ind: Int): Loc {
-        val numRegion = ind / SIZE_REGION
-        val offset = ind % SIZE_REGION
-        return Loc(regions[numRegion], offset)
-    }
-
-
-    fun allocateNode(payload: Array<Int>): Int {
+    fun allocateNode(payload: Array<Int>): Loc {
+        val result: Int
         if (indFree == SIZE_REGION) {
-            ++currRegion
+            ++indRegion
+            lastRegion = regions[indRegion]
             indFree = 0
-            if (currRegion == regions.size) {
-                regions.add(Array<Int>(SIZE_REGION, {x -> 0}))
-            }
+            result = (indRegion + 1)*SIZE_REGION
+        } else {
+            result = indFree
         }
 
-        val region = regions[currRegion]
-        //val result = Loc(region, indFree)
-        val result = currRegion*SIZE_REGION + indFree
-        region[indFree++] = -1
-        region[indFree++] = -1
+        lastRegion[indFree++] = -1
+        lastRegion[indFree++] = -1
         for (i: Int in payload) {
-            region[indFree++] = i
+            lastRegion[indFree++] = i
         }
-        return result
+        return Loc(lastRegion, result)
     }
 
 
-    fun getValue(ind: Int): Loc {
+    fun getValue(ind: Int, region: Array<Int>): Int {
         if (ind < 0) throw Exception("Region index must be non-negative, not " + ind)
-        val numRegion = ind / SIZE_REGION
-        val offset = ind % SIZE_REGION
-        if (numRegion >= regions.size) throw Exception("Nonexistent region " + numRegion)
-        return Loc(regions[numRegion], offset)
-    }
 
-
-    fun setValue(ind: Int, newValue: Int) {
-        if (ind < 0) return
-        val numRegion = ind / SIZE_REGION
-        val offset = ind % SIZE_REGION
-        if (numRegion >= regions.size) return
-        regions[numRegion][offset] = newValue
+        if (ind < SIZE_REGION) {
+            return ind
+        } else {
+            val absoluteInd = ind - SIZE_REGION
+            lastRegion = regions[absoluteInd/SIZE_REGION]
+            val iInregion = absoluteInd%SIZE_REGION
+            return iInregion
+        }
     }
 }
