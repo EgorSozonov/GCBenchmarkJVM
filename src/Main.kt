@@ -4,10 +4,10 @@ import java.util.concurrent.TimeUnit
 
 
 fun main(args: Array<String>) {
-    val treeHeight = 25
-    run(treeHeight, "GC", ::runWithGC)
+    val treeHeight = 4
+    //run(treeHeight, "GC", ::runWithGC)
     //run(treeHeight, "Regions", ::runWithRegions)
-    //run(treeHeight, "Smart Regions", ::runWithSmartRegions)
+    run(treeHeight, "Smart Regions", ::runWithSmartRegions)
     //run(treeHeight, "Progressive", ::runWithProgressiveRegions)
     //run(treeHeight, "Smart Progressive Regions", ::runWithSmartProgressiveRegions)
 
